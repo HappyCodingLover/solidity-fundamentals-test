@@ -25,8 +25,7 @@ This project is well compensated to give you the time you need to properly secur
 
 ### Setup Instructions
 
-1. Install Truffle (a development environment for smart contracts) and Ganache (a local blockchain server to allow you to use a local version of the Ethereum blockchain) with `npm install -g truffle ganache-cli`
-2. Install required packages with `npm install`
-3. Run `npm start` in one terminal window to start the Ganache server
-4. Run `npm test` in another terminal window to run the Truffle tests
-5. The initial tests should pass for `depositToVault` and `withdrawFromVault` and fail for `calculateVaultFee`.
+1. Install required packages with `yarn install`
+2. Run `npm compile` to compile the contracts and create the documentation
+3. Run `npm test` to run the tests
+4. The initial tests should pass for `depositToVault` and `withdrawFromVault` and fail for `calculateVaultFee`.
