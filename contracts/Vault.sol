@@ -42,7 +42,7 @@ contract Vault is Ownable {
 
     // make sure uint256 is not out of range
     modifier onlyValidUint(uint256 _val) {
-        require(_val < 2**128 - 1, "Value is out of range");
+        require(_val < 1000, "Value is out of range");
         _;
     }
 
@@ -106,7 +106,8 @@ contract Vault is Ownable {
         returns (uint256, uint256)
     {
         // TODO: Implement the 0.3% fee to the vault here
-        uint256 amountToVault = amount * vaultFee;
+        // uint256 amountToVault = amount * vaultFee;
+        uint256 amountToVault = amount * vaultFee / 1000;
         // uint256 amountToUser = amount - amountToVault;
         uint256 amountToUser = amount.sub(amountToVault);
         return (amountToUser, amountToVault);
