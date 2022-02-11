@@ -61,7 +61,7 @@ contract Vault is Ownable {
     /// @notice Process a deposit to the vault
     /// @param amount The amount that a user wants to deposit
     /// @return balance The current account balance
-    function deposit(uint256 amount) public returns (uint256) {
+    function deposit(uint256 amount) public onlyOwner returns (uint256) {
         // Initialize the ERC20 for USDC or DAI
         IERC20 erc20 = IERC20(ERC20_ADDRESS);
 
@@ -78,7 +78,7 @@ contract Vault is Ownable {
     /// @param amount The amount that a user wants to withdraw. The vault takes a
     /// 0.3% fee on every withdrawal
     /// @return balance The current account balance
-    function withdraw(uint256 amount) public returns (uint256) {
+    function withdraw(uint256 amount) public onlyOwner returns (uint256) {
         // Initialize the ERC20 for USDC or DAI
         IERC20 erc20 = IERC20(ERC20_ADDRESS);
 
