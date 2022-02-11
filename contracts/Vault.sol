@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "hardhat/console.sol";
+
 /// @title A sample vault contract
 /// @author William Starr & Coinocracy Inc.
 /// @notice The Vault contract keeps track of the deposits and withdrawals for a
@@ -30,9 +32,6 @@ contract Vault is Ownable {
     // using safeERC20
     using SafeERC20 for IERC20;
 
-
-
-
     uint256 balance = 0;
 
     // The vault should take a fee of 0.3% on every withdrawal. For example, if a
@@ -41,11 +40,27 @@ contract Vault is Ownable {
     // The vaultFee is set using setVaultFee();
     uint256 vaultFee = 0;
 
+    // vault user
+    address public VAULT_USER;
+    constructor(address _addr) {
+        console.log("set vault user to ", _addr);
+        VAULT_USER = _addr;
+    }
+
+    // caller should be the vault user
+    modifier onlyVaultUser() {
+        console.log("onlyVaultUser/Caller", msg.sender);
+        require(msg.sender == VAULT_USER, "only valut user can deposit/withdraw");
+        _;
+    }
+
     // address passed in is not the zero address.
     modifier onlyValidAddress(address _addr) {
         require(_addr != address(0), "Not valid address");
         _;
     }
+
+    
 
     // make sure uint256 is not out of range
     modifier onlyValidUint(uint256 _val) {
@@ -55,7 +70,7 @@ contract Vault is Ownable {
 
     /// @notice Set the address for the USD token the vault will use
     /// @param _token The address of the token contract
-    function setERCAddress(address _token) public onlyOwner onlyValidAddress(_token) {
+    function setERCAddress(address _token) public onlyVaultUser onlyValidAddress(_token) {
         // if token address has been changed, transfer the previous token balance to the owner
         // and reset the balance to zero
         if (_token != ERC20_ADDRESS && balance != 0) {
@@ -79,7 +94,7 @@ contract Vault is Ownable {
     /// @notice Process a deposit to the vault
     /// @param amount The amount that a user wants to deposit
     /// @return balance The current account balance
-    function deposit(uint256 amount) public onlyOwner returns (uint256) {
+    function deposit(uint256 amount) public onlyVaultUser returns (uint256) {
         // Initialize the ERC20 for USDC or DAI
         IERC20 erc20 = IERC20(ERC20_ADDRESS);
 
@@ -96,7 +111,7 @@ contract Vault is Ownable {
     /// @param amount The amount that a user wants to withdraw. The vault takes a
     /// 0.3% fee on every withdrawal
     /// @return balance The current account balance
-    function withdraw(uint256 amount) public onlyOwner returns (uint256) {
+    function withdraw(uint256 amount) public onlyVaultUser returns (uint256) {
         // Initialize the ERC20 for USDC or DAI
         IERC20 erc20 = IERC20(ERC20_ADDRESS);
 

@@ -104,12 +104,25 @@ describe("Vault", function () {
 
 
   before("setup", async () => {
+    accounts = await getUnnamedAccounts();
+    // const vaultOwner = accounts[0];
+    // vaultOwner is accuounts[1]
+    const vaultOwner = accounts[0];
+    const vaultUser = accounts[2];
+    console.log('vaultOwner ', vaultOwner);
+    console.log('vaultUser ', vaultUser);
+    // const vaultFactory = await ethers.getContractFactory("Vault") as Vault__factory;
     const vaultFactory = await ethers.getContractFactory("Vault") as Vault__factory;
-    vaultInstance = await vaultFactory.deploy() as Vault;
+    // vaultInstance = await vaultFactory.deploy() as Vault;
+   
+    vaultInstance = await vaultFactory.deploy(vaultUser) as Vault;
     const tokenFactory = await ethers.getContractFactory("SimpleToken") as SimpleToken__factory;
     tokenInstance = await tokenFactory.deploy() as SimpleToken;
-    await vaultInstance.setERCAddress(tokenInstance.address);
+
+    let userSigner = await ethers.getSigner(vaultUser);
+    await vaultInstance.connect(userSigner).setERCAddress(tokenInstance.address);
     accounts = await getUnnamedAccounts();
+
     await vaultInstance.setVaultFeeAddress(accounts[8]);
   });
 
@@ -123,6 +136,7 @@ describe("Vault", function () {
     const usdOwner = accounts[0];
     const vaultOwner = accounts[1];
     const vaultUser = accounts[2];
+    
     // Fund the vaultUser with some DAI (since it is initialized without any)
     await setupDai(tokenInstance, usdOwner, vaultUser, vaultInstance.address, 1000);
     let bal = await tokenInstance.balanceOf(vaultUser);
@@ -151,13 +165,15 @@ describe("Vault", function () {
   });
 
   it('withdrawFromVault', async () => {
-    const vaultOwner = accounts[0];
-    const vaultUser = accounts[1];
+    // const vaultOwner = accounts[0];
+    // const vaultUser = accounts[1];
+    const vaultOwner = accounts[1];
+    const vaultUser = accounts[2];
     // TODO: The vault should take a fee of 0.3% on every withdrawal
-    let fee = 0;
+    let fee = 3;
 
     let vaultOwnerSigner = await ethers.getSigner(vaultOwner);
-    await vaultInstance.connect(vaultOwnerSigner).setVaultFee(fee);
+    await vaultInstance.setVaultFee(fee);
 
     // Withdraw 1000 DAI in Ether
     let amountToWithdraw = ether(String(1000)).toString();
@@ -197,13 +213,13 @@ describe("Vault", function () {
     // let vaultFee = await vaultInstance.calculateVaultFee.call(String(1000));
     // console.log(util.inspect(vaultFee, { depth: null }))
 
-    let vaultFee = await vaultInstance.calculateVaultFee(String(1000));
+    let vaultFee = await vaultInstance.calculateVaultFee(BigNumber.from(1000));
     expect(vaultFee[0]).to.be.to.equal(BigNumber.from(997));
     expect(vaultFee[1]).to.be.to.equal(BigNumber.from(3));
 
-    vaultFee = await vaultInstance.calculateVaultFee.call(String(1000000000000000000000));
-    expect(vaultFee[0]).to.be.to.equal(BigNumber.from(997000000000000000000));
-    expect(vaultFee[1]).to.be.to.equal(BigNumber.from(3000000000000000000));
+    vaultFee = await vaultInstance.calculateVaultFee(BigNumber.from(1000000000000000));
+    expect(vaultFee[0]).to.be.to.equal(BigNumber.from(997000000000000));
+    expect(vaultFee[1]).to.be.to.equal(BigNumber.from(3000000000000));
 
   });
 });
