@@ -40,12 +40,6 @@ contract Vault is Ownable {
         _;
     }
 
-    // caller address is not the zero address.
-    modifier onlyValidCallerAddress() {
-        require(msg.sender != address(0), "Not valid address");
-        _;
-    }
-
     // make sure uint256 is not out of range
     modifier onlyValidUint(uint256 _val) {
         require(_val < 2**128 - 1, "Value is out of range");
@@ -67,7 +61,7 @@ contract Vault is Ownable {
     /// @notice Process a deposit to the vault
     /// @param amount The amount that a user wants to deposit
     /// @return balance The current account balance
-    function deposit(uint256 amount) public onlyValidCallerAddress returns (uint256) {
+    function deposit(uint256 amount) public returns (uint256) {
         // Initialize the ERC20 for USDC or DAI
         IERC20 erc20 = IERC20(ERC20_ADDRESS);
 
@@ -84,7 +78,7 @@ contract Vault is Ownable {
     /// @param amount The amount that a user wants to withdraw. The vault takes a
     /// 0.3% fee on every withdrawal
     /// @return balance The current account balance
-    function withdraw(uint256 amount) public onlyValidCallerAddress returns (uint256) {
+    function withdraw(uint256 amount) public returns (uint256) {
         // Initialize the ERC20 for USDC or DAI
         IERC20 erc20 = IERC20(ERC20_ADDRESS);
 
