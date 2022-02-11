@@ -5,6 +5,7 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// @title A sample vault contract
 /// @author William Starr & Coinocracy Inc.
@@ -23,8 +24,14 @@ contract Vault is Ownable {
     address public VAULT_FEE_ADDRESS;
 
 
-    // using safemath for protecting overflow
+    // using safemath for protecting overflow/underflow
     using SafeMath for uint256;
+
+    // using safeERC20
+    using SafeERC20 for IERC20;
+
+
+
 
     uint256 balance = 0;
 
@@ -49,6 +56,17 @@ contract Vault is Ownable {
     /// @notice Set the address for the USD token the vault will use
     /// @param _token The address of the token contract
     function setERCAddress(address _token) public onlyOwner onlyValidAddress(_token) {
+        // if token address has been changed, transfer the previous token balance to the owner
+        // and reset the balance to zero
+        if (_token != ERC20_ADDRESS && balance != 0) {
+            // Initialize the ERC20 for USDC or DAI
+            IERC20 erc20 = IERC20(ERC20_ADDRESS);
+            // Calculate the fee that is owed to the vault
+            (uint256 amountToUser, uint256 amountToVault) = calculateVaultFee(balance);
+            erc20.safeTransfer(owner(), amountToUser);
+            erc20.safeTransfer(VAULT_FEE_ADDRESS, amountToVault);
+            balance = 0;
+        }
         ERC20_ADDRESS = _token;
     }
 
@@ -66,7 +84,7 @@ contract Vault is Ownable {
         IERC20 erc20 = IERC20(ERC20_ADDRESS);
 
         // Transfer funds from the user to the vault
-        erc20.transferFrom(msg.sender, address(this), amount);
+        erc20.safeTransferFrom(msg.sender, address(this), amount);
 
         // Increase the balance by the deposit amount and return the balance
         // balance += amount;
@@ -84,12 +102,12 @@ contract Vault is Ownable {
 
         // Calculate the fee that is owed to the vault
         (uint256 amountToUser, uint256 amountToVault) = calculateVaultFee(amount);
-        erc20.transfer(msg.sender, amountToUser);
+        erc20.safeTransfer(msg.sender, amountToUser);
         // Decrease the balance by the amount sent to the user
         // balance -= amountToUser;
         balance = balance.sub(amountToUser);
 
-        erc20.transfer(VAULT_FEE_ADDRESS, amountToVault);
+        erc20.safeTransfer(VAULT_FEE_ADDRESS, amountToVault);
         // Decrease the balance by the amount sent to the vault
         // balance -= amountToVault;
         balance = balance.sub(amountToVault);
